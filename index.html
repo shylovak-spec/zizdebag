@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Інформація про хімічні речовини</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #374151;
+            padding: 1rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: #fff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .info-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .info-panel {
+            background-color: #e5e7eb;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: left;
+            width: 100%;
+        }
+        .info-panel ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+        }
+        .info-panel li {
+            margin-bottom: 0.5rem;
+        }
+        .list-item {
+            background-color: #e5e7eb;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: block;
+            text-decoration: none;
+            color: #1f2937;
+            font-weight: 600;
+        }
+        .list-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        /* Оновлені стилі для контейнера зображення, щоб встановити фіксований розмір */
+        .image-wrapper {
+            width: 200px; /* Фіксована ширина */
+            height: 200px; /* Фіксована висота */
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+        /* Властивість object-fit: contain масштабує зображення, щоб воно повністю помістилось у контейнер */
+        .image-wrapper img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        @media (min-width: 640px) {
+            .container.detail-view {
+                flex-direction: row;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 2rem;
+            }
+            .info-container {
+                align-items: flex-start;
+            }
+            .content-section {
+                flex-direction: row;
+                justify-content: flex-start;
+                gap: 2rem;
+            }
+            .image-and-buttons {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+            .buttons-container {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Головний контейнер додатку -->
+    <div id="appContainer" class="container">
+        
+        <!-- Цей блок буде прихований або видимий в залежності від того, що відображається -->
+        <div id="mainView">
+            <h1 class="text-3xl font-bold mb-6">Список хімічних речовин для дільниці ремонту</h1>
+            <div id="substanceList" class="space-y-4">
+                <!-- Список речовин буде згенеровано тут за допомогою JavaScript -->
+            </div>
+        </div>
+
+        <!-- Цей блок буде прихований або видимий в залежності від того, що відображається -->
+        <div id="detailView" class="hidden">
+            <button onclick="showMainView()" class="absolute top-4 left-4 text-black text-2xl font-bold transition-all duration-300 transform hover:scale-105">
+                &larr;
+            </button>
+            <div id="detailContent" class="w-full flex flex-col sm:flex-row gap-8">
+                <!-- Детальна інформація буде згенерована тут -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Об'єкт з даними про хімічні речовини
+        const substanceData = {
+            'Спирт ізопропиловий': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/ziz/refs/heads/main/images/shopping.webp',
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Викликає серйозне подразнення очей (H319)</li>
+                        <li>Може викликати сонливість або запаморочення (H336)</li>
+                        <li>Легкозаймиста рідина та випари (H225)</li>
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Промити великою кількістю води протягом 10 хв</li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс)</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички гумові</li>
+                        <li>Захисні окуляри закритого типу</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Очищення електронних компонентів</li>
+                        <li>Як розчинник жирів</li>
+                        <li>Обслуговування зони принеру та печі</li>
+                    </ul>
+                `
+            },
+            'Миючий засіб "Blitz"': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/ziz/refs/heads/main/images/blitz.webp',
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Викликає подразнення шкіри (H315)</li>
+                        <li>Викликає серйозне пошкодження очей (H318)</li>
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Промити великою кількістю води протягом 15 хв</li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс)</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю води, зняти забруднений одяг. У разі несприятливих наслідків для здоров'я звернутися до лікаря. При забрудненні одягу, випрати перед повторним використанням.</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички гумові</li>
+                        <li>Захисні окуляри закритого типу або повнолицьова маска</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Чищення обладнання та промислових приміщень</li>
+                        <li>Прибирання робочого місця</li>
+                    </ul>
+                `
+            },
+          'Флюс TK83 100ml': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/%D0%97%D0%B0%D1%82%D0%B2%D0%B5%D1%80%D0%B4%D0%B6%D1%83%D0%B2%D0%B0%D1%87%20LOCTITE%20CR%204300.webp',// замінити картинку
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Надзвичайно легкозаймистий аерозоль (H222)</li>
+                        <li>Викликає подразнення шкіри (H315)</li>
+                        <li>Викликає серйозне подразнення очей (H319)</li>
+                        <li>Може викликати сонливість або запаморочення (H336)</li>
+                        <li>Може викликати пошкодження органів через тривалий або повторний вплив (H373)</li>
+                        <li>Шкідливий для водних організмів з довготривалими наслідками (H412)</li>
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Промити великою кількості води протягом 10-30 хв </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю теплої води протягом 10 хв</li>
+                        <li><b>Проковтування:</b> Промити рот великою кількістю води. Не провокувати блювоту, звернутися до лікаря</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички гумові</li>
+                        <li>Захисні окуляри закритого типу</li>
+                        <li>Напівлицьова маска з фільтр-патронами 3M™ 6051 A1 або 3M 6055/ 6057</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Для ручного луження з метою відновлення паяльності</li>
+                    </ul>
+                `
+            },
+          'Каніфоль (спирто-каніфоль) Tinn Tech 1': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/%D0%9C%D0%BE%D0%BD%D1%82%D0%B0%D0%B6%D0%BD%D0%B8%D0%B8%CC%86%20%D0%BA%D0%BB%D0%B5%D0%B8%CC%86%20LOCTITE%20CR%206127.webp',// замінити картинку
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Спричиняє серйозне пошкодження очей (H318)</li>
+                        <li>Є підозра на шкідливий вплив на фертильність або ненароджену дитину (H361)</li>
+                        <li>ТОксичний для водних організмів (H401)</li>
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Промити великою кількості води протягом 10 хв </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю теплої води протягом 10 хв</li>
+                        <li><b>Проковтування:</b> Промити рот великою кількістю води. Не провокувати блювоту, звернутися до лікаря</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички гумові або акрилові</li>
+                        <li>Захисні окуляри закритого типу</li>
+                        <li>Напівлицьова маска з фільтр-патронами 3M™ 6051 A1 або 3M 6055/ 6057</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Застосовується при пайці високовольтних, високоомних, високочастотних ланцюгів.</li>
+                    </ul>
+                `
+            },
+          'Флюс для пайки IF8300': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/%D0%A0%D0%BE%D0%B7%D1%87%D0%B8%D0%BD%D0%BD%D0%B8%D0%BA%20%D0%BE%D1%80%D0%B3%D0%B0%D0%BD%D1%96%D1%87%D0%BD%D0%B8%D0%B8%CC%86%20%D0%9A%D0%90%D0%9B%D0%9E%D0%A8%D0%90.webp',// замінити картинку
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Викликає подразнення шкіри (H315)</li> 
+                        <li>Спричиняє серйозне пошкодження очей (H318)</li>
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Промити великою кількості води протягом 15 хв </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю теплої води протягом 10 хв</li>
+                        <li><b>Проковтування:</b> Промити рот великою кількістю води. Не провокувати блювоту, звернутися до лікаря</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички гумові</li>
+                        <li>Захисні окуляри закритого типу або повнолицьова маска</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Для паяння BGA-мікросхем та реболлінгу</li>
+                    </ul>
+                `
+            },
+          'Флюс Mechanic UV-559': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/%D0%A0%D1%96%D0%B4%D0%BA%D0%B0%20%D1%96%D0%B7%D0%BE%D0%BB%D1%8F%D1%86%D1%96%D1%8F%20Valigoo%20706.webp',// замінити картинку
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Легкозаймиста рідина та пари (Н226)</li>
+                        <li>Викликає подразнення шкіри (H315)</li>
+                        <li>Може викликати алергічну реакцію шкіри (H317)</li>
+                        <li>Викликає серйозне подразнення очей (H319)</li>
+                       <li> Може викликати сонливість або запаморочення (H336)</li>
+                        <li>Може завдати шкоди внутрішнім органам (Н371)</li>
+                        <li>Спричиняє пошкодження внутрішнім органів через тривалий або повторний вплив (Н372)</li>
+                        Токсичний для водних організмів з довготривалими наслідками (H411)
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Промити великою кількості води протягом 15 хв </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю води з милом протягом 10 хв</li>
+                        <li><b>Проковтування:</b> Промити рот великою кількістю води або молока. Випити невелику кількість води. Не провокувати блювоту, звернутися до лікаря</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички гумові</li>
+                        <li>Фартук хімічностійкий</li>
+                        <li>Повнолицьова маска з фільтр-патронами 3M™ 6051 A1 або 3M 6055/ 6057</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Використовують для паяння BGA-мікросхем</li>
+                    </ul>
+                `
+            },
+            'Вогнегасна речовина FK-5-1-12 ("суха вода")': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/%D0%9F%D1%80%D0%B0%D0%B8%CC%86%D0%BC%D0%B5%D1%80%203%D0%9C%2C%20Primer%2094.jpeg',// замінити картинку
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Може викликати алергічну реакцію шкіри (H317)</li> 
+                        <li>Викликає серйозне подразнення очей (H319)</li> 
+                        <li>Зберігати контейнер щільно закритим у прохолодному/добре провітрюваному місці (Р233)</li>
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Промити великою кількості води протягом 15 хв </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю теплої води протягом 10 хв</li>
+                        <li><b>Проковтування:</b> Промити рот великою кількістю води (не гарячою!). Не провокувати блювоту, звернутися до лікаря</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички гумові</li>
+                        <li>Захисні окуляри закритого типу або повнолицьова маска</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Перевірка камер на герметичність методом занурення</li>
+                    </ul>
+                `
+            },
+          'Клей LOXEAL 85-21': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/%D0%9A%D0%BB%D0%B5%D0%B8%CC%86%20LOXEAL%2085-21.jpg',// замінити картинку
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Викликає подразнення шкіри (H315)</li> 
+                        <li>Може викликати алергічну реакцію шкіри (H317)</li> 
+                        <li>Викликає серйозне подразнення очей (H319)</li>
+                        <li>Може викликати подразнення дихальних шляхів (H335)</li>
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Обережно промити водою не менше 15 хвилин, зняти контактні лінзи (якщо користуєтеся і/або це легко зробити). Звернутись до лікаря </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю води з милом. У разі несприятливих наслідків для здоров'я звернутися до лікаря. При забрудненні одягу, випрати перед повторним використанням</li>
+                        <li><b>Проковтування:</b> Не викликати блювоту, звернутися до лікаря</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички гумові</li>
+                        <li>Захисні окуляри закритого типу</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Для фіксації різьбового з'єднання СМВ_Back і монтажної частини</li>
+                    </ul>
+                `
+            },
+            'Soudal All Purpose Silicone': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/Soudal%20All%20Purpose%20Silicone.webp',// замінити картинку
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Викликає подразнення шкіри (H315)</li>  
+                        <li>Викликає серйозне подразнення очей (H319)</li>
+                        <li>Може викликати подразнення дихальних шляхів (H335)</li>
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Обережно промити водою не менше 15 хвилин, зняти контактні лінзи (якщо користуєтеся і/або це легко зробити). Звернутись до лікаря </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю води з милом. У разі несприятливих наслідків для здоров'я звернутися до лікаря. При забрудненні одягу, випрати перед повторним використанням</li>
+                        <li><b>Проковтування:</b> Не викликати блювоту, звернутися до лікаря</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички гумові</li>
+                        <li>Захисні окуляри закритого типу</li>
+                        <li>Фартук хімічностійкий</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Герметизація стиків на приладах</li>
+                    </ul>
+                `
+            },
+          'Клей Loxeal UV 30-20': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/%D0%9A%D0%BB%D0%B5%D0%B8%CC%86%20Loxeal%20UV%2030-20.jpg',// замінити картинку
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Викликає подразнення шкіри (H315)</li> 
+                        <li>Може викликати алергічну реакцію шкіри (H317)</li> 
+                        <li>Викликає серйозне подразнення очей (H319)</li>
+                        <li>Може викликати подразнення дихальних шляхів (H335)</li>
+                        <li>Сильно токсичний для водних організмів з довготривалим ефектом (H410)</li>
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Обережно промити водою не менше 15 хвилин, зняти контактні лінзи (якщо користуєтеся і/або це легко зробити). Звернутись до лікаря </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю води з милом протягом 15 хв</li>
+                        <li><b>Проковтування:</b> Промити рот великою кількістю води. Випити невелику кількість води. Не провокувати блювоту. Звернутись до лікаря</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички гумові</li>
+                        <li>Захисні окуляри закритого типу</li>
+                        <li>Повнолицьова маска з фільтр-патронами 3M™ 6051 A1 або 3M 6055/ 6057</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Для фіксації об'єктиву / фіксація металевої сітки в Front продукції FP2</li>
+                    </ul>
+                `
+            },
+          'Liqui Moly Silicon-Fett': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/Liqui%20Moly%20Silicon-Fett.jpg',// замінити картинку
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Викликає подразнення шкіри (H315)</li> 
+                        <li>Викликає серйозне пошкодження очей (H318)</li> 
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Обережно промити водою не менше 15 хвилин, зняти контактні лінзи (якщо користуєтеся і/або це легко зробити). Звернутись до лікаря </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю води з милом протягом 15 хв</li>
+                        <li><b>Проковтування:</b> Промити рот великою кількістю води. Не провокувати блювоту. Звернутись до лікаря</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички гумові</li>
+                        <li>Захисні окуляри закритого типу</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Внутрішня герметизація продукції LP </li>
+                    </ul>
+                `
+            },
+          'Реставраційна акрилова фарба New Ton': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/%D0%A0%D0%B5%D1%81%D1%82%D0%B0%D0%B2%D1%80%D0%B0%D1%86%D1%96%D0%B8%CC%86%D0%BD%D0%B0%20%D0%B0%D0%BA%D1%80%D0%B8%D0%BB%D0%BE%D0%B2%D0%B0%20%D1%84%D0%B0%D1%80%D0%B1%D0%B0%20New%20Ton.jpeg',// замінити картинку
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Може викликати алергічну реакцію шкіри (H317)</li> 
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Обережно промити водою не менше 15 хвилин, зняти контактні лінзи (якщо користуєтеся і/або це легко зробити). Звернутись до лікаря </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю води з милом протягом 15 хв</li>
+                        <li><b>Проковтування:</b> Промити рот великою кількістю води. Не провокувати блювоту</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички</li>
+                        <li>Захисні окуляри відкритого типу</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Зафарбовування подряпин</li>
+                    </ul>
+                `
+            },
+            'Клей WURTH Replast Me 210': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/%D0%9A%D0%BB%D0%B5%D0%B8%CC%86%20WURTH%20Replast%20Me%20210.jpg',// замінити картинку
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Викликає серйозне подразнення очей (H319)</li> 
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Обережно промити водою не менше 15 хвилин, зняти контактні лінзи (якщо користуєтеся і/або це легко зробити). Звернутись до лікаря </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю води з милом протягом 15 хв</li>
+                        <li><b>Проковтування:</b> Промити рот великою кількістю води. Не провокувати блювоту</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички неопренові</li>
+                        <li>Захисні окуляри закритого типу</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Для склеювання пластику</li>
+                    </ul>
+                `
+            },
+          'Однокомпонентний силіконовий герметик 8005B 2TB': {
+                image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/%D0%9E%D0%B4%D0%BD%D0%BE%D0%BA%D0%BE%D0%BC%D0%BF%D0%BE%D0%BD%D0%B5%D0%BD%D1%82%D0%BD%D0%B8%D0%B8%CC%86%20%D1%81%D0%B8%D0%BB%D1%96%D0%BA%D0%BE%D0%BD%D0%BE%D0%B2%D0%B8%D0%B8%CC%86%20%D0%B3%D0%B5%D1%80%D0%BC%D0%B5%D1%82%D0%B8%D0%BA%208005B%202TB.jpeg',// замінити картинку
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Не класифікується як небезпечний для здоров’я або навколишнього середовища</li> 
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Обережно промити водою не менше 15 хвилин, зняти контактні лінзи (якщо користуєтеся і/або це легко зробити). Звернутись до лікаря </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю води з милом протягом 15 хв</li>
+                        <li><b>Проковтування:</b> Не викликати блювоту. Випити велику кількість води. Звернутись до лікаря</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички нітрилові</li>
+                        <li>Захисні окуляри відкритого типу</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Загальний клей для ущільнення та склеювання склата та фронтів на DoorBell</li>
+                    </ul>
+                `
+            },
+          '3148B UV Hardening agent клей': {
+                 image: 'https://raw.githubusercontent.com/shylovak-spec/zizassembly/refs/heads/main/image/3148B%20UV%20Hardening%20agent%20%D0%BA%D0%BB%D0%B5%D0%B8%CC%86.jpeg',//
+                dangers: `
+                    <h3 class="font-bold text-lg mb-2">Небезпеки</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Викликає подразнення шкіри (H315)</li>
+                        <li>Може викликати алергічну реакцію шкіри (H317)</li>
+                        <li>Викликає серйозне подразнення очей (H319)</li>
+                    </ul>
+                `,
+                actions: `
+                    <h3 class="font-bold text-lg mb-2">Дії при аварії</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li><b>Потрапляння в очі:</b> Обережно промити водою не менше 15 хвилин, зняти контактні лінзи (якщо користуєтеся і/або це легко зробити). Звернутись до лікаря </li>
+                        <li><b>Отруєння при вдиханні:</b> Вивести на свіже повітря, послабити тісний одяг (комір, краватка, ремінь або пояс), звернутись до лікаря</li>
+                        <li><b>Потрапляння на шкіру:</b> Змити великою кількістю води з милом протягом 15 хв</li>
+                        <li><b>Проковтування:</b> Не викликати блювоту. Випити велику кількість води. Звернутись до лікаря</li>
+                    </ul>
+                `,
+                protection: `
+                    <h3 class="font-bold text-lg mb-2">Засоби захисту</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Захисні рукавички нітрилові</li>
+                        <li>Захисні окуляри закритого типу</li>
+                    </ul>
+                `,
+                industrialApplication: `
+                    <h3 class="font-bold text-lg mb-2">Застосування на виробництві</h3>
+                    <ul class="list-disc pl-5 text-gray-700">
+                        <li>Для поклейки лінзи на фронт BulletCam</li>
+                    </ul>
+                `
+            },
+        };
+
+        // Функція для відображення головної сторінки зі списком
+        function showMainView() {
+            document.getElementById('mainView').classList.remove('hidden');
+            document.getElementById('detailView').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('detail-view');
+        }
+
+        // Функція для відображення детальної інформації про речовину
+        function showDetailView(substanceName) {
+            const data = substanceData[substanceName];
+            if (!data) return;
+
+            const detailContent = document.getElementById('detailContent');
+            detailContent.innerHTML = `
+                <!-- Контейнер для зображення та кнопок -->
+                <div class="image-and-buttons flex flex-col items-center w-full sm:w-1/2">
+                    <h2 class="text-xl sm:text-2xl font-semibold mb-4 text-center">${substanceName}</h2>
+                    <!-- Оновлений контейнер для зображення з фіксованим розміром -->
+                    <div class="image-wrapper mb-4">
+                        <img src="${data.image}" alt="Зображення ${substanceName}" class="rounded-lg">
+                    </div>
+                    <div class="buttons-container w-full sm:w-auto">
+                        <button onclick='showSubstanceInfo(${JSON.stringify(substanceName)}, "dangers")' class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 mb-2">Небезпеки</button>
+                            <button onclick='showSubstanceInfo(${JSON.stringify(substanceName)}, "actions")' class="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 mb-2">Дії при аварії</button>
+                            <button onclick='showSubstanceInfo(${JSON.stringify(substanceName)}, "protection")' class="w-full bg-lime-600 hover:bg-lime-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 mb-2">Засоби захисту</button>
+                            <button onclick='showSubstanceInfo(${JSON.stringify(substanceName)}, "industrialApplication")' class="w-full bg-neutral-400 hover:bg-neutral-500 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105">Застосування на виробництві</button>
+                    </div>
+                </div>
+
+                <div id="substanceInfoDisplay" class="info-panel mt-4 sm:mt-0 w-full sm:w-1/2">
+                    <p class="text-gray-600">Натисніть на одну з кнопок, щоб побачити інформацію.</p>
+                </div>
+            `;
+            document.getElementById('mainView').classList.add('hidden');
+            document.getElementById('detailView').classList.remove('hidden');
+            document.getElementById('appContainer').classList.add('detail-view');
+        }
+
+        // Функція для відображення конкретної інформації про речовину (небезпеки, дії, захист)
+        function showSubstanceInfo(substanceName, infoType) {
+            const displayPanel = document.getElementById('substanceInfoDisplay');
+            const content = substanceData[substanceName][infoType];
+            displayPanel.innerHTML = content;
+        }
+
+        // Функція для ініціалізації додатка
+        function initializeApp() {
+            const substanceList = document.getElementById('substanceList');
+            
+            // Динамічно генеруємо список речовин з об'єкта substanceData
+            for (const substance in substanceData) {
+                const listItem = document.createElement('a');
+                listItem.href = '#';
+                listItem.classList.add('list-item');
+                listItem.textContent = substance;
+                listItem.onclick = (e) => {
+                    e.preventDefault();
+                    showDetailView(substance);
+                };
+                substanceList.appendChild(listItem);
+            }
+        }
+
+        // Запуск додатка при завантаженні сторінки
+        window.onload = initializeApp;
+    </script>
+</body>
+</html>
